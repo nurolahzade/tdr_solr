@@ -1,0 +1,99 @@
+<dataConfig>
+
+    <dataSource driver="com.mysql.jdbc.Driver" url="jdbc:mysql://localhost:3306/tdd_reuse" 
+        user="root" password="" />
+
+    <document>
+    
+        <entity name="test_method" query="SELECT id, name FROM TestMethod" 
+            deltaImportQuery="SELECT id, name FROM TestMethod
+                WHERE id = '${dataimporter.delta.id}'"
+            deltaQuery="SELECT id FROM TestMethod 
+                WHERE last_modified > '${dataimporter.last_index_time}'">
+                
+            <field column="id" name="id" />
+            <field column="name" name="test_method_name" />
+
+            <entity name="reference"  query="SELECT Reference.name, Class.fqn FROM Reference 
+                LEFT JOIN Class 
+                ON Reference.class_id=Class.id 
+                WHERE test_method_id='${test_method.id}'">
+                
+                <field column="name" name="reference_name" />
+                <field column="fqn" name="reference_class" />
+                
+            </entity>
+            
+            <entity name="reference_owner" query="SELECT Class.fqn FROM Reference 
+                INNER JOIN Class 
+                ON Reference.declaring_class_id=Class.id 
+                WHERE test_method_id='${test_method.id}'">
+                
+                <field column="fqn" name="reference_owner_class" />
+                
+            </entity>
+            
+            <entity name="exception" query="SELECT Class.fqn FROM TestMethod 
+                INNER JOIN TestMethod_has_Exception 
+                ON TestMethod.id=TestMethod_has_Exception.test_method_id 
+                INNER JOIN Exception 
+                ON TestMethod_has_Exception.exception_id=Exception.id 
+                INNER JOIN Class 
+                ON Exception.class_id=Class.id 
+                WHERE test_method_id='${test_method.id}'">
+                
+                <field column="fqn" name="exception_class" />
+                
+            </entity>
+            
+            <entity name="method" query="SELECT Method.name, Class.fqn FROM TestMethod
+                INNER JOIN TestMethod_calls_Method
+                ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                INNER JOIN Method
+                ON TestMethod_calls_Method.method_id=Method.id
+                INNER JOIN Class
+                ON Method.class_id=Class.id
+                WHERE TestMethod.id='${test_method.id}'">
+                
+                <field column="name" name="method_name" />
+                <field column="fqn" name="method_class" />
+            
+            </entity>
+            
+            <entity name="method_return" query="SELECT Class.fqn FROM TestMethod
+                INNER JOIN TestMethod_calls_Method
+                ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                INNER JOIN Method
+                ON TestMethod_calls_Method.method_id=Method.id
+                INNER JOIN Class
+                ON Method.return_type=Class.id
+                WHERE TestMethod.id='${test_method.id}'">
+                
+                <field column="fqn" name="method_return_type" />
+                
+            </entity>
+            
+            <entity name="assertion" query="SELECT Method.name, Class.fqn FROM TestMethod
+                INNER JOIN TestMethod_has_Assertion
+                ON TestMethod.id=TestMethod_has_Assertion.test_method_id
+                INNER JOIN Assertion
+                ON TestMethod_has_Assertion.assertion_id=Assertion.id
+                INNER JOIN Assertion_on_Method
+                ON Assertion.id=Assertion_on_Method.assertion_id
+                INNER JOIN Method
+                ON Assertion_on_Method.method_id=Method.id
+                INNER JOIN Class
+                ON Method.class_id=Class.id
+                WHERE TestMethod.id='${test_method.id}'">
+                
+                <field column="name" name="assertion_method_name" />
+                <field column="fqn" name="assertion_method_class" />
+            
+            </entity>
+            
+        </entity>
+        
+    </document>
+    
+</dataConfig>
+
