@@ -14,25 +14,28 @@
             <field column="id" name="id" />
             <field column="name" name="test_method_name" />
 
+            <!-- Type of all object properties or local variables referenced -->
             <entity name="reference"  query="SELECT Reference.name, Class.fqn FROM Reference 
                 LEFT JOIN Class 
                 ON Reference.class_id=Class.id 
                 WHERE test_method_id='${test_method.id}'">
                 
                 <field column="name" name="reference_name" />
-                <field column="fqn" name="reference_class" />
+                <field column="fqn" name="reference_fqn" />
                 
             </entity>
             
+            <!-- Types of all objects whose properties have been referenced -->
             <entity name="reference_owner" query="SELECT Class.fqn FROM Reference 
                 INNER JOIN Class 
                 ON Reference.declaring_class_id=Class.id 
                 WHERE test_method_id='${test_method.id}'">
                 
-                <field column="fqn" name="reference_owner_class" />
+                <field column="fqn" name="reference_owner_fqn" />
                 
             </entity>
             
+            <!-- Exception types that are thrown, catched, or expected -->
             <entity name="exception" query="SELECT Class.fqn FROM TestMethod 
                 INNER JOIN TestMethod_has_Exception 
                 ON TestMethod.id=TestMethod_has_Exception.test_method_id 
@@ -42,10 +45,11 @@
                 ON Exception.class_id=Class.id 
                 WHERE test_method_id='${test_method.id}'">
                 
-                <field column="fqn" name="exception_class" />
+                <field column="fqn" name="exception_fqn" />
                 
             </entity>
             
+            <!-- Methods called -->
             <entity name="method" query="SELECT Method.name, Class.fqn FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
                 ON TestMethod.id=TestMethod_calls_Method.test_method_id
@@ -56,10 +60,11 @@
                 WHERE TestMethod.id='${test_method.id}'">
                 
                 <field column="name" name="method_name" />
-                <field column="fqn" name="method_class" />
+                <field column="fqn" name="method_fqn" />
             
             </entity>
             
+            <!-- Return types of the methods called -->
             <entity name="method_return" query="SELECT Class.fqn FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
                 ON TestMethod.id=TestMethod_calls_Method.test_method_id
@@ -69,10 +74,11 @@
                 ON Method.return_type=Class.id
                 WHERE TestMethod.id='${test_method.id}'">
                 
-                <field column="fqn" name="method_return_type" />
+                <field column="fqn" name="method_return_type_fqn" />
                 
             </entity>
             
+            <!-- Methods that have an assertion on their return value -->
             <entity name="assertion" query="SELECT Method.name, Class.fqn FROM TestMethod
                 INNER JOIN TestMethod_has_Assertion
                 ON TestMethod.id=TestMethod_has_Assertion.test_method_id
@@ -87,7 +93,7 @@
                 WHERE TestMethod.id='${test_method.id}'">
                 
                 <field column="name" name="assertion_method_name" />
-                <field column="fqn" name="assertion_method_class" />
+                <field column="fqn" name="assertion_method_fqn" />
             
             </entity>
             
