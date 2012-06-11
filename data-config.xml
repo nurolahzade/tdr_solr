@@ -5,92 +5,126 @@
 
     <document>
     
-        <entity name="test_method" query="SELECT id, name FROM TestMethod" 
-            deltaImportQuery="SELECT id, name FROM TestMethod
-                WHERE id = '${dataimporter.delta.id}'"
-            deltaQuery="SELECT id FROM TestMethod 
+        <entity name="_test_method" query="SELECT TestMethod.id, TestMethod.name, Class.class_name 
+			FROM TestMethod
+			LEFT JOIN Class
+			ON TestMethod.class_id=Class.id" 
+            deltaImportQuery="SELECT TestMethod.id, TestMethod.name, Class.class_name 
+				FROM TestMethod
+				LEFT JOIN Class
+				ON TestMethod.class_id=Class.id
+                WHERE TestMethod.id = '${dataimporter.delta.id}'"
+            deltaQuery="SELECT id 
+				FROM TestMethod 
                 WHERE last_modified > '${dataimporter.last_index_time}'">
                 
             <field column="id" name="id" />
             <field column="name" name="test_method_name" />
+			<field column="class_name" name="test_class_name" />
 
-            <!-- Type of all object properties or local variables referenced -->
-            <entity name="reference"  query="SELECT Reference.name, Class.fqn FROM Reference 
+            <!-- Name of all object attributes or variables referenced -->
+            <entity name="_reference_name"  query="SELECT DISTINCT Reference.name, Class.fqn 
+				FROM Reference 
                 LEFT JOIN Class 
                 ON Reference.class_id=Class.id 
-                WHERE test_method_id='${test_method.id}'">
+                WHERE test_method_id='${_test_method.id}'">
                 
                 <field column="name" name="reference_name" />
-                <field column="fqn" name="reference_fqn" />
                 
             </entity>
             
-            <!-- Types of all objects whose properties have been referenced -->
-            <entity name="reference_owner" query="SELECT Class.fqn FROM Reference 
+            <!-- Type of all object attributes or variables referenced -->
+            <entity name="_reference_fqn"  query="SELECT DISTINCT Class.fqn 
+				FROM Reference 
+                LEFT JOIN Class 
+                ON Reference.class_id=Class.id 
+                WHERE test_method_id='${_test_method.id}'">
+                
+                <field column="fqn" name="reference_fqn" />
+                
+            </entity>
+
+            <!-- Types of all host objects whose attributes have been referenced -->
+            <entity name="_reference_owner" query="SELECT DISTINCT Class.fqn 
+				FROM Reference 
                 INNER JOIN Class 
                 ON Reference.declaring_class_id=Class.id 
-                WHERE test_method_id='${test_method.id}'">
+                WHERE test_method_id='${_test_method.id}'">
                 
                 <field column="fqn" name="reference_owner_fqn" />
                 
             </entity>
             
-            <!-- Exception types that are thrown, catched, or expected -->
-            <entity name="exception" query="SELECT Class.fqn FROM TestMethod 
+            <!-- Exception types that are thrown, caught, or expected -->
+            <entity name="_exception" query="SELECT DISTINCT Class.fqn 
+				FROM TestMethod 
                 INNER JOIN TestMethod_has_Exception 
                 ON TestMethod.id=TestMethod_has_Exception.test_method_id 
                 INNER JOIN Exception 
                 ON TestMethod_has_Exception.exception_id=Exception.id 
                 INNER JOIN Class 
                 ON Exception.class_id=Class.id 
-                WHERE test_method_id='${test_method.id}'">
+                WHERE test_method_id='${_test_method.id}'">
                 
                 <field column="fqn" name="exception_fqn" />
                 
             </entity>
             
-            <!-- Methods called -->
-            <entity name="method" query="SELECT Method.name, Class.fqn FROM TestMethod
+            <!-- Names of methods called -->
+            <entity name="_method_name" query="SELECT DISTINCT Method.name 
+				FROM TestMethod
+                INNER JOIN TestMethod_calls_Method
+                ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                INNER JOIN Method
+                ON TestMethod_calls_Method.method_id=Method.id
+                WHERE TestMethod.id='${_test_method.id}'">
+                
+                <field column="name" name="method_name" />
+            
+            </entity>
+            
+            <!-- Class of methods called -->
+            <entity name="_method_fqn" query="SELECT DISTINCT Class.fqn 
+				FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
                 ON TestMethod.id=TestMethod_calls_Method.test_method_id
                 INNER JOIN Method
                 ON TestMethod_calls_Method.method_id=Method.id
                 INNER JOIN Class
                 ON Method.class_id=Class.id
-                WHERE TestMethod.id='${test_method.id}'">
+                WHERE TestMethod.id='${_test_method.id}'">
                 
-                <field column="name" name="method_name" />
                 <field column="fqn" name="method_fqn" />
             
             </entity>
-            
+
             <!-- Return types of the methods called -->
-            <entity name="method_return" query="SELECT Class.fqn FROM TestMethod
+            <entity name="_method_return" query="SELECT DISTINCT Class.fqn 
+				FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
                 ON TestMethod.id=TestMethod_calls_Method.test_method_id
                 INNER JOIN Method
                 ON TestMethod_calls_Method.method_id=Method.id
                 INNER JOIN Class
                 ON Method.return_type=Class.id
-                WHERE TestMethod.id='${test_method.id}'">
+                WHERE TestMethod.id='${_test_method.id}'">
                 
                 <field column="fqn" name="method_return_type_fqn" />
                 
             </entity>
             
             <!-- Methods that have an assertion on their return value -->
-            <entity name="assertion" query="SELECT Method.name, Class.fqn FROM TestMethod
-                INNER JOIN TestMethod_has_Assertion
-                ON TestMethod.id=TestMethod_has_Assertion.test_method_id
-                INNER JOIN Assertion
-                ON TestMethod_has_Assertion.assertion_id=Assertion.id
-                INNER JOIN Assertion_on_Method
-                ON Assertion.id=Assertion_on_Method.assertion_id
+            <entity name="_assertion" query="SELECT Method.name, Class.fqn 
+				FROM TestMethod
+				INNER JOIN Assertion_on_Method
+				ON TestMethod.id=Assertion_on_Method.test_method_id
+				INNER JOIN Assertion
+				ON Assertion.id=Assertion_on_Method.assertion_id
                 INNER JOIN Method
                 ON Assertion_on_Method.method_id=Method.id
                 INNER JOIN Class
                 ON Method.class_id=Class.id
-                WHERE TestMethod.id='${test_method.id}'">
+                WHERE TestMethod.id='${_test_method.id}'">
                 
                 <field column="name" name="assertion_method_name" />
                 <field column="fqn" name="assertion_method_fqn" />
