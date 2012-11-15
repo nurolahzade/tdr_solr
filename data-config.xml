@@ -5,29 +5,37 @@
 
     <document>
     
-        <entity name="_test_method" query="SELECT TestMethod.id, TestMethod.name, Class.class_name 
-			FROM TestMethod
-			LEFT JOIN Class
-			ON TestMethod.class_id=Class.id" 
-            deltaImportQuery="SELECT TestMethod.id, TestMethod.name, Class.class_name 
-				FROM TestMethod
-				LEFT JOIN Class
-				ON TestMethod.class_id=Class.id
-                WHERE TestMethod.id = '${dataimporter.delta.id}'"
-            deltaQuery="SELECT id 
-				FROM TestMethod 
-                WHERE last_modified > '${dataimporter.last_index_time}'">
+        <entity name="_test_class" query="SELECT Class.id, Class.class_name, Class.fqn 
+			FROM Class
+			WHERE type IN (1, 2)" 
+            deltaImportQuery="SELECT Class.id, Class.class_name, Class.fqn 
+				FROM Class
+				WHERE type IN (1, 2) AND Class.id = '${dataimporter.delta.id}'"
+            deltaQuery="SELECT Class.id 
+				FROM Class 
+                WHERE type in (1, 2) AND last_modified > '${dataimporter.last_index_time}'">
                 
             <field column="id" name="id" />
-            <field column="name" name="test_method_name" />
-			<field column="class_name" name="test_class_name" />
+            <field column="class_name" name="test_class_name" />
+			<field column="fqn" name="test_class_fqn" />
+
+			<!-- Name of all test methods -->
+			<entity name="_test_method_name" query="SELECT TestMethod.name
+				FROM TestMethod
+				WHERE TestMethod.class_id='${_test_class.id}'">
+				
+				<field column="name" name="test_method_name" />
+				
+			</entity>
 
             <!-- Name of all object attributes or variables referenced -->
             <entity name="_reference_name"  query="SELECT DISTINCT Reference.name, Class.fqn 
 				FROM Reference 
                 LEFT JOIN Class 
-                ON Reference.class_id=Class.id 
-                WHERE test_method_id='${_test_method.id}'">
+                	ON Reference.class_id=Class.id
+                INNER JOIN TestMethod
+                	ON Reference.test_method_id=TestMethod.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="name" name="reference_name" />
                 
@@ -37,9 +45,10 @@
             <entity name="_reference_fqn"  query="SELECT DISTINCT Class.fqn 
 				FROM Reference 
                 LEFT JOIN Class 
-                ON Reference.class_id=Class.id 
-                WHERE test_method_id='${_test_method.id}'">
-                
+                	ON Reference.class_id=Class.id
+                INNER JOIN TestMethod
+					ON Reference.test_method_id=TestMethod.id
+                WHERE TestMethod.class_id='${_test_class.id}'">                
                 <field column="fqn" name="reference_fqn" />
                 
             </entity>
@@ -48,8 +57,10 @@
             <entity name="_reference_owner" query="SELECT DISTINCT Class.fqn 
 				FROM Reference 
                 INNER JOIN Class 
-                ON Reference.declaring_class_id=Class.id 
-                WHERE test_method_id='${_test_method.id}'">
+                	ON Reference.declaring_class_id=Class.id
+                INNER JOIN TestMethod
+                	ON Reference.test_method_id=TestMethod.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="fqn" name="reference_owner_fqn" />
                 
@@ -59,12 +70,12 @@
             <entity name="_exception" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod 
                 INNER JOIN TestMethod_has_Exception 
-                ON TestMethod.id=TestMethod_has_Exception.test_method_id 
+                	ON TestMethod.id=TestMethod_has_Exception.test_method_id 
                 INNER JOIN Exception 
-                ON TestMethod_has_Exception.exception_id=Exception.id 
+                	ON TestMethod_has_Exception.exception_id=Exception.id 
                 INNER JOIN Class 
-                ON Exception.class_id=Class.id 
-                WHERE test_method_id='${_test_method.id}'">
+                	ON Exception.class_id=Class.id 
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="fqn" name="exception_fqn" />
                 
@@ -74,10 +85,10 @@
             <entity name="_method_name" query="SELECT DISTINCT Method.name 
 				FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
-                ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                	ON TestMethod.id=TestMethod_calls_Method.test_method_id
                 INNER JOIN Method
-                ON TestMethod_calls_Method.method_id=Method.id
-                WHERE TestMethod.id='${_test_method.id}'">
+                	ON TestMethod_calls_Method.method_id=Method.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="name" name="method_name" />
             
@@ -87,12 +98,12 @@
             <entity name="_method_fqn" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
-                ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                	ON TestMethod.id=TestMethod_calls_Method.test_method_id
                 INNER JOIN Method
-                ON TestMethod_calls_Method.method_id=Method.id
+                	ON TestMethod_calls_Method.method_id=Method.id
                 INNER JOIN Class
-                ON Method.class_id=Class.id
-                WHERE TestMethod.id='${_test_method.id}'">
+                	ON Method.class_id=Class.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="fqn" name="method_fqn" />
             
@@ -102,12 +113,12 @@
             <entity name="_method_return" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod
                 INNER JOIN TestMethod_calls_Method
-                ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                	ON TestMethod.id=TestMethod_calls_Method.test_method_id
                 INNER JOIN Method
-                ON TestMethod_calls_Method.method_id=Method.id
+                	ON TestMethod_calls_Method.method_id=Method.id
                 INNER JOIN Class
-                ON Method.return_type=Class.id
-                WHERE TestMethod.id='${_test_method.id}'">
+                	ON Method.return_type=Class.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="fqn" name="method_return_type_fqn" />
                 
@@ -117,14 +128,14 @@
             <entity name="_assertion" query="SELECT Method.name, Class.fqn 
 				FROM TestMethod
 				INNER JOIN Assertion_on_Method
-				ON TestMethod.id=Assertion_on_Method.test_method_id
+					ON TestMethod.id=Assertion_on_Method.test_method_id
 				INNER JOIN Assertion
-				ON Assertion.id=Assertion_on_Method.assertion_id
+					ON Assertion.id=Assertion_on_Method.assertion_id
                 INNER JOIN Method
-                ON Assertion_on_Method.method_id=Method.id
+                	ON Assertion_on_Method.method_id=Method.id
                 INNER JOIN Class
-                ON Method.class_id=Class.id
-                WHERE TestMethod.id='${_test_method.id}'">
+                	ON Method.class_id=Class.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="name" name="assertion_method_name" />
                 <field column="fqn" name="assertion_method_fqn" />

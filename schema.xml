@@ -37,9 +37,11 @@
 	<fields>
 
 		<field name="id" type="integer" indexed="true" stored="true" required="true" />
-		<field name="test_method_name" type="string" indexed="true" stored="true" required="true" omitNorms="true" />
 		<field name="test_class_name" type="string" indexed="true" stored="true" required="false" omitNorms="true" />
+		<field name="test_class_fqn" type="string" indexed="true" stored="true" required="false" omitNorms="true" />
         
+		<field name="test_method_name" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+
 		<field name="reference_name" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true"/>
         <field name="reference_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
         
@@ -60,11 +62,12 @@
                         
 	</fields>
 
-	<copyField source="test_method_name" dest="names"/>
 	<copyField source="test_class_name" dest="names"/>
+	<copyField source="test_method_name" dest="names"/>
 	<copyField source="reference_name" dest="names"/>
 	<copyField source="method_name" dest="names"/>
 
+	<copyField source="test_class_fqn" dest="fqns"/>
 	<copyField source="reference_fqn" dest="fqns"/>
 	<copyField source="reference_owner_fqn" dest="fqns"/>
 	<copyField source="exception_fqn" dest="fqns"/>
@@ -83,7 +86,7 @@
 	<!--
 		field for the QueryParser to use when an explicit fieldname is absent
 	-->
-	<defaultSearchField>reference_name</defaultSearchField>
+	<defaultSearchField>names</defaultSearchField>
 
 	<!--
 		Similarity is the scoring routine for each document vs. a query. A
