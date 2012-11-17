@@ -10,7 +10,7 @@
 			WHERE type IN (1, 2)" 
             deltaImportQuery="SELECT Class.id, Class.class_name, Class.fqn 
 				FROM Class
-				WHERE type IN (1, 2) AND Class.id = '${dataimporter.delta.id}'"
+				WHERE Class.id = '${dataimporter.delta.id}'"
             deltaQuery="SELECT Class.id 
 				FROM Class 
                 WHERE type in (1, 2) AND last_modified > '${dataimporter.last_index_time}'">
