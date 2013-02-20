@@ -84,10 +84,10 @@
             <!-- Names of methods called -->
             <entity name="_method_name" query="SELECT DISTINCT Method.name 
 				FROM TestMethod
-                INNER JOIN TestMethod_calls_Method
-                	ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                INNER JOIN MethodInvocation
+                	ON TestMethod.id=MethodInvocation.test_method_id
                 INNER JOIN Method
-                	ON TestMethod_calls_Method.method_id=Method.id
+                	ON MethodInvocation.method_id=Method.id
                 WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="name" name="method_name" />
@@ -97,10 +97,10 @@
             <!-- Class of methods called -->
             <entity name="_method_fqn" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod
-                INNER JOIN TestMethod_calls_Method
-                	ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                INNER JOIN MethodInvocation
+                	ON TestMethod.id=MethodInvocation.test_method_id
                 INNER JOIN Method
-                	ON TestMethod_calls_Method.method_id=Method.id
+                	ON MethodInvocation.method_id=Method.id
                 INNER JOIN Class
                 	ON Method.class_id=Class.id
                 WHERE TestMethod.class_id='${_test_class.id}'">
@@ -112,34 +112,16 @@
             <!-- Return types of the methods called -->
             <entity name="_method_return" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod
-                INNER JOIN TestMethod_calls_Method
-                	ON TestMethod.id=TestMethod_calls_Method.test_method_id
+                INNER JOIN MethodInvocation
+                	ON TestMethod.id=MethodInvocation.test_method_id
                 INNER JOIN Method
-                	ON TestMethod_calls_Method.method_id=Method.id
+                	ON MethodInvocation.method_id=Method.id
                 INNER JOIN Class
                 	ON Method.return_type=Class.id
                 WHERE TestMethod.class_id='${_test_class.id}'">
                 
                 <field column="fqn" name="method_return_type_fqn" />
                 
-            </entity>
-            
-            <!-- Methods that have an assertion on their return value -->
-            <entity name="_assertion" query="SELECT Method.name, Class.fqn 
-				FROM TestMethod
-				INNER JOIN Assertion_on_Method
-					ON TestMethod.id=Assertion_on_Method.test_method_id
-				INNER JOIN Assertion
-					ON Assertion.id=Assertion_on_Method.assertion_id
-                INNER JOIN Method
-                	ON Assertion_on_Method.method_id=Method.id
-                INNER JOIN Class
-                	ON Method.class_id=Class.id
-                WHERE TestMethod.class_id='${_test_class.id}'">
-                
-                <field column="name" name="assertion_method_name" />
-                <field column="fqn" name="assertion_method_fqn" />
-            
             </entity>
             
         </entity>
