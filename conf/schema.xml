@@ -51,6 +51,7 @@
         
         <field name="method_name" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
         <field name="method_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+        <field name="parameters" type="string" indexed="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
         
         <field name="method_return_type_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
         

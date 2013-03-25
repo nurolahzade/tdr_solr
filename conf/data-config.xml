@@ -82,6 +82,7 @@
             </entity>
             
             <!-- Names of methods called -->
+<!--
             <entity name="_method_name" query="SELECT DISTINCT Method.name 
 				FROM TestMethod
                 INNER JOIN MethodInvocation
@@ -93,8 +94,9 @@
                 <field column="name" name="method_name" />
             
             </entity>
-            
+-->            
             <!-- Class of methods called -->
+<!--
             <entity name="_method_fqn" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod
                 INNER JOIN MethodInvocation
@@ -108,8 +110,9 @@
                 <field column="fqn" name="method_fqn" />
             
             </entity>
-
+-->
             <!-- Return types of the methods called -->
+<!--  
             <entity name="_method_return" query="SELECT DISTINCT Class.fqn 
 				FROM TestMethod
                 INNER JOIN MethodInvocation
@@ -122,6 +125,28 @@
                 
                 <field column="fqn" name="method_return_type_fqn" />
                 
+            </entity>
+-->            
+            <entity name="_method" query="SELECT DISTINCT Method.*, Class.fqn
+            	FROM TestMethod
+                INNER JOIN MethodInvocation
+                	ON TestMethod.id=MethodInvocation.test_method_id
+                INNER JOIN Method
+                	ON MethodInvocation.method_id=Method.id
+                INNER JOIN Class
+                	ON Method.return_type=Class.id
+                WHERE TestMethod.class_id='${_test_class.id}'">
+                <field column="name" name="method_name" />
+                <field column="fqn" name="method_return_type_fqn" />
+                <entity name="_parameters" query="SELECT Class.fqn 
+                	FROM Argument
+                	INNER JOIN Method
+                		ON Argument.method_id=Method.id
+                	INNER JOIN Class
+                		ON Argument.class_id=Class.id
+                	WHERE Method.id='${_method.id}'">
+                	<field column="fqn" name="parameters" />
+                </entity>
             </entity>
             
         </entity>
