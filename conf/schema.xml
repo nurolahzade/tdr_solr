@@ -16,7 +16,7 @@
 
 	<!-- the bag of words structure used for lexical similarity comparison of test cases -->	
 	<fieldType name="bag_of_words" class="solr.TextField" positionIncrementGap="100">
-		<!-- perform the same tokenization and filtering process both at index and query time -->		
+		<!-- perform both tokenization and filtering process both at index and query time -->		
 		<analyzer type="index">
 			<!-- tokenize words -->
 			<tokenizer class="org.apache.solr.analysis.KeywordTokenizerFactory" />

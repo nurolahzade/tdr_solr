@@ -44,7 +44,7 @@
 		<property name="dataDir" value="cores/methods/data" />
 	</core>
 	<core name="classes" instanceDir="cores/classes">
-		<property name="dataDir" value="cores/classes/data" />
+		<property name="dataDir" value="cores/methods/data" />
 	</core>
   </cores>
 </solr>
