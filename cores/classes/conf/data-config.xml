@@ -1,0 +1,52 @@
+<dataConfig>
+
+    <dataSource driver="com.mysql.jdbc.Driver" url="jdbc:mysql://localhost:3306/tdd_reuse" 
+        user="mehrdad" password="qwerty1234" />
+
+    <document>
+    
+        <entity name="_class" query="SELECT class.id, class.fqn
+			FROM class
+			WHERE type NOT IN (1,2)" 
+            deltaImportQuery="SELECT class.id, class.fqn
+				FROM class
+				WHERE type NOT IN (1,2) AND class.id = '${dataimporter.delta.id}'"
+            deltaQuery="SELECT class.id 
+				FROM class 
+                WHERE last_modified > '${dataimporter.last_index_time}'">
+                
+		<field column="id" name="id" />
+		<field column="class_name" name="class_name" />
+		<field column="fqn" name="class_fqn" />
+
+		<entity name="_method_names" query="SELECT method.name
+				FROM method
+				WHERE method.class_id = '${_class.id}'">
+			<field column="name" name="method_names" />
+		</entity>
+
+		<entity name="_method_arguments" query="SELECT argumentClass.fqn 
+				FROM argument
+				INNER JOIN method
+					ON argument.method_id=method.id
+				INNER JOIN class AS methodClass
+					ON method.class_id=methodClass.id
+				INNER JOIN class AS argumentClass
+					ON argument.class_id=argumentClass.id
+				WHERE methodClass.id='${_class.id}'">
+			<field column="fqn" name="method_argument_fqns" />
+		</entity>
+
+		<entity name="_method_return_types" query="SELECT class.fqn
+				FROM method
+				INNER JOIN class
+					ON method.return_type = class.id
+				WHERE method.class_id = '${_class.id}'">
+			<field column="fqn" name="method_return_type_fqns" />
+		</entity>
+            
+        </entity>        
+    </document>
+    
+</dataConfig>
+

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="TestDrivenReuse" version="1.1">
+	<types>
+
+		
+	<fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+
+	<!-- boolean type: "true" or "false" -->
+	<fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
+
+	<fieldType name="integer" class="solr.IntField" omitNorms="true"/>
+	<fieldType name="long" class="solr.LongField" omitNorms="true"/>
+	<fieldType name="float" class="solr.FloatField" omitNorms="true"/>
+	<fieldType name="double" class="solr.DoubleField" omitNorms="true"/>
+
+	<!-- the bag of words structure used for lexical similarity comparison of test cases -->	
+	<fieldType name="bag_of_words" class="solr.TextField" positionIncrementGap="100">
+		<!-- perform the same tokenization and filtering process both at index and query time -->		
+		<analyzer type="index">
+			<!-- tokenize words -->
+			<tokenizer class="org.apache.solr.analysis.KeywordTokenizerFactory" />
+			<!-- split camel-cased words -->
+			<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" splitOnCaseChange="1" />
+			<!-- convert words to lower case -->
+			<filter class="solr.LowerCaseFilterFactory" />		
+			<!-- reduce English words to their stems -->			
+			<filter class="solr.SnowballPorterFilterFactory" language="English"/>
+			<!-- remove duplicate words -->			
+			<filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+		</analyzer>
+		<analyzer type="query">
+			<tokenizer class="org.apache.solr.analysis.KeywordTokenizerFactory" />
+			<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" splitOnCaseChange="1" />
+			<filter class="solr.LowerCaseFilterFactory" />		
+			<filter class="solr.SnowballPorterFilterFactory" language="English"/>
+			<filter class="solr.RemoveDuplicatesTokenFilterFactory" />			
+		</analyzer>		
+	</fieldType>
+
+	</types>
+
+	<!-- each Solr document consists of a test method -->
+	<fields>
+		<!-- the primary key of the test method entity in the relational database -->
+		<field name="id" type="integer" indexed="true" stored="true" required="true" />
+		<!-- the name of the test class that the test method belongs to -->
+		<field name="test_class_name" type="string" indexed="true" stored="true" required="false" omitNorms="true" />
+		<!-- the fully qualified name of the test class that the test method belongs to -->
+		<field name="test_class_fqn" type="string" indexed="true" stored="true" required="false" omitNorms="true" />
+        	<!-- the name of the test method -->
+		<field name="test_method_name" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+		<!-- the name of a reference accessed in the test method -->
+		<field name="reference_name" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true"/>
+		<!-- the fully qualified name of the reference types accessed in the test method -->
+		<!-- for example, in declaration of the reference ref -->
+		<!-- java.util.Date foo.bar.ref;-->
+		<!-- java.util.Date is the fully qualified name of the reference type -->        	
+		<field name="reference_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+        	<!-- the fully qualified name of the reference owner types accessed in the test method -->
+		<!-- for example, in declaration of the reference ref -->
+		<!-- java.util.Date foo.bar.ref;-->
+		<!-- foo.bar is the fully qualified name of the reference owner type -->        	
+		<field name="reference_owner_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+        	<!-- the fully qualified name of the exceptions caught or thrown in the test method -->
+		<field name="exception_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+        	<!-- the name of the methods invoked in the test method -->
+		<field name="method_name" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+		<!-- the fully qualified name of the methods invoked in the test method -->		
+		<field name="method_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+		<!-- the fully qualified name of the arguments of the methods invoked in the test method -->		
+		<field name="parameters" type="string" indexed="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+        	<!-- the fully qualified name of the return type of the methods invoked in the test method -->
+		<field name="method_return_type_fqn" type="string" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+        	<!-- the bag of words containing all names related to the test method -->
+		<field name="names" type="bag_of_words" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+		<!-- the bag of words containing all fully qualified names related to the test method -->		
+		<field name="fqns" type="bag_of_words" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+		<!-- the bag of words containing all names related to the test method -->
+		<!-- used for evaluation, comparing our TDR approach with other TDR approaches -->
+		<field name="names2" type="bag_of_words" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />                
+        	<!-- the bag of words containing all fully qualified names related to the test method -->
+		<!-- used for evaluation, comparing our TDR approach with other TDR approaches -->
+		<field name="fqns2" type="bag_of_words" indexed="true" stored="true" required="false" multiValued="true" termVector="true" omitNorms="true" />
+
+	</fields>
+
+	<!-- the set of names in test cases used for lexical similarity comparisons -->
+	<copyField source="test_class_name" dest="names"/>
+	<copyField source="test_method_name" dest="names"/>
+	<copyField source="reference_name" dest="names"/>
+	<copyField source="method_name" dest="names"/>
+
+	<!-- the set of fully qualified names names in test cases used for lexical similarity comparisons -->
+	<copyField source="test_class_fqn" dest="fqns"/>
+	<copyField source="reference_fqn" dest="fqns"/>
+	<copyField source="reference_owner_fqn" dest="fqns"/>
+	<copyField source="exception_fqn" dest="fqns"/>
+	<copyField source="method_fqn" dest="fqns"/>
+	<copyField source="method_return_type_fqn" dest="fqns"/>
+
+	<!-- the set of names in test cases that is used by existing TDR approaches -->
+	<!-- used for the evaluation study that compares my approach with other TDR approaches -->
+	<copyField source="method_name" dest="names2"/>
+
+	<!-- the set of type names in test cases that is used by existing TDR approaches -->
+	<!-- used for the evaluation study that compares my approach with other TDR approaches -->
+	<copyField source="reference_fqn" dest="fqns2"/>
+	<copyField source="method_fqn" dest="fqns2"/>
+	<copyField source="method_return_type_fqn" dest="fqns2"/>
+
+	<!--
+		Field to use to determine and enforce document uniqueness. Unless this
+		field is marked with required="false", it will be a required field
+	-->
+	<uniqueKey>id</uniqueKey>
+
+	<!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
+	<solrQueryParser defaultOperator="AND" />
+
+	<!--
+		field for the QueryParser to use when an explicit fieldname is absent
+	-->
+	<defaultSearchField>names</defaultSearchField>
+
+	<!--
+		Similarity is the scoring routine for each document vs. a query. A
+		custom similarity may be specified here, but the default is fine for
+		most applications.
+	-->
+	<!--
+		<similarity class="org.apache.lucene.search.DefaultSimilarity"/>
+	-->
+
+</schema>

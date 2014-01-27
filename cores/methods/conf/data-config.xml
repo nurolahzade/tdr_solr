@@ -1,0 +1,45 @@
+<dataConfig>
+
+    <dataSource driver="com.mysql.jdbc.Driver" url="jdbc:mysql://localhost:3306/tdd_reuse" 
+        user="mehrdad" password="qwerty1234" />
+
+    <document>
+    
+        <entity name="_method" query="SELECT method.id, method.name, method_class.fqn AS method_fqn, return_class.fqn AS return_fqn
+			FROM method
+			INNER JOIN class AS method_class
+				ON method.class_id=method_class.id
+			INNER JOIN class AS return_class
+				ON method.return_type=return_class.id" 
+            deltaImportQuery="SELECT method.id, method.name, method_class.fqn AS method_fqn, return_class.fqn AS return_fqn
+				FROM method
+				INNER JOIN class AS method_class
+					ON method.class_id=method_class.id
+				INNER JOIN class AS return_class
+					ON method.return_type=return_class.id
+				WHERE method.id = '${dataimporter.delta.id}'"
+            deltaQuery="SELECT method.id 
+				FROM method 
+                WHERE last_modified > '${dataimporter.last_index_time}'">
+                
+            <field column="id" name="id" />
+            <field column="name" name="name" />
+			<field column="method_fqn" name="fqn" />
+			<field column="return_fqn" name="return_type_fqn" />
+
+			<entity name="_parameters" query="SELECT class.fqn 
+				FROM argument
+				INNER JOIN method
+					ON argument.method_id=method.id
+				INNER JOIN class
+					ON argument.class_id=class.id
+				WHERE method.id='${_method.id}'">
+				<field column="fqn" name="parameters" />
+			</entity>
+            
+        </entity>
+        
+    </document>
+    
+</dataConfig>
+
